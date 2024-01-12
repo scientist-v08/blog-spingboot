@@ -14,10 +14,8 @@ import org.springframework.stereotype.Service;
 @AllArgsConstructor
 @Service
 public class CommentServiceImpl implements CommentService {
-
-    @Autowired
+    
     private CommentRepository commentRepository;
-    @Autowired
     private PostsRepository postsRepository;
     @Override
     public CommentDto createComment(long postId, CommentDto commentDto) {
