@@ -8,6 +8,7 @@ import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 @CrossOrigin("*")
 public class PostController {
     private PostService postService;
+    @Secured(AppConstants.ADMIN_USER)
     @PostMapping
     public ResponseEntity<String> createPost(@Valid @RequestBody PostDto postDto){
         String response= this.postService.createPost(postDto);
@@ -37,12 +39,14 @@ public class PostController {
         return ResponseEntity.ok(this.postService.getPostById(id));
     }
 
+    @Secured(AppConstants.ADMIN_USER)
     @PutMapping("/{id}")
     public ResponseEntity<String> updatePost(@Valid @RequestBody PostDto postDto){
         String successMessage = postService.updatePost(postDto);
         return new ResponseEntity<>(successMessage, HttpStatus.OK);
     }
 
+    @Secured(AppConstants.ADMIN_USER)
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deletePost(@PathVariable(name = "id") long id){
         this.postService.deletePostById(id);
