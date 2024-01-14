@@ -13,8 +13,13 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CommentDto {
-    private long id;
+    private Long id;
+    @NotEmpty(message = "Name should not be empty")
     private String name;
+    @NotEmpty(message = "Email should not be empty")
+    @Email(message = "Please enter an email")
     private String email;
+    @NotEmpty(message = "Body should not be empty")
+    @Size(min=10,message = "Minimum size of the body is 10")
     private String body;
 }
