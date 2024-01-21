@@ -7,6 +7,7 @@ import com.blogproject.springboot.entity.User;
 import com.blogproject.springboot.exception.BlogAPIException;
 import com.blogproject.springboot.repository.RoleRepository;
 import com.blogproject.springboot.repository.UserRepository;
+import com.blogproject.springboot.security.JwtTokenProvider;
 import com.blogproject.springboot.service.AuthService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -27,6 +28,7 @@ public class AuthServiceImpl implements AuthService {
     private UserRepository userRepository;
     private RoleRepository roleRepository;
     private PasswordEncoder passwordEncoder;
+    private JwtTokenProvider jwtTokenProvider;
     @Override
     public String login(LoginDto loginDto) {
         Authentication authentication = authenticationManager.authenticate(
@@ -36,7 +38,8 @@ public class AuthServiceImpl implements AuthService {
                 )
         );
         SecurityContextHolder.getContext().setAuthentication(authentication);
-        return "User login success";
+        String token = this.jwtTokenProvider.generateToken(authentication);
+        return token;
     }
 
     @Override
