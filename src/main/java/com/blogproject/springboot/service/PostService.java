@@ -5,7 +5,7 @@ import com.blogproject.springboot.dto.PostPaginationDto;
 
 public interface PostService {
     String createPost(PostDto postDto);
-    PostPaginationDto getPosts(int pageNo, int pageSize,String sortBy,String sortOrder);
+    PostPaginationDto getPosts(int pageNo, int pageSize,String sortBy,String sortOrder, String title);
     PostDto getPostById(long id);
     String updatePost(PostDto postDto);
     void deletePostById(long id);

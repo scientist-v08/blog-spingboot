@@ -27,9 +27,10 @@ public class PostController {
             @RequestParam(value = "pageNo",defaultValue = AppConstants.DEFAULT_PAGE_NUMBER, required = false) int pageNo,
             @RequestParam(value = "pageSize",defaultValue = AppConstants.DEFAULT_PAGE_SIZE,required = false)int pageSize,
             @RequestParam(value = "sortBy",defaultValue = AppConstants.DEFAULT_SORT_BY,required = false)String sortBy,
-            @RequestParam(value = "sortOrder",defaultValue = AppConstants.DEFAULT_SORT_ORDER,required = false)String sortOrder
+            @RequestParam(value = "sortOrder",defaultValue = AppConstants.DEFAULT_SORT_ORDER,required = false)String sortOrder,
+            @RequestParam(required = false) String title
     ){
-        PostPaginationDto posts = this.postService.getPosts(pageNo,pageSize,sortBy,sortOrder);
+        PostPaginationDto posts = this.postService.getPosts(pageNo,pageSize,sortBy,sortOrder,title);
         return new ResponseEntity<>(posts, HttpStatus.OK);
     }
 
