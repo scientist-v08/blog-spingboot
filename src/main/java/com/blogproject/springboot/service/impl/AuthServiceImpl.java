@@ -1,65 +1,74 @@
 package com.blogproject.springboot.service.impl;
 
 import com.blogproject.springboot.dto.LoginDto;
+import com.blogproject.springboot.dto.LoginResponseDto;
 import com.blogproject.springboot.dto.RegisterDto;
-import com.blogproject.springboot.entity.Role;
+import com.blogproject.springboot.dto.RegisterResponseDto;
 import com.blogproject.springboot.entity.User;
-import com.blogproject.springboot.exception.BlogAPIException;
-import com.blogproject.springboot.repository.RoleRepository;
 import com.blogproject.springboot.repository.UserRepository;
 import com.blogproject.springboot.security.JwtTokenProvider;
 import com.blogproject.springboot.service.AuthService;
 import lombok.AllArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.HashMap;
 
 @Service
 @AllArgsConstructor
 public class AuthServiceImpl implements AuthService {
-    private AuthenticationManager authenticationManager;
-    private UserRepository userRepository;
-    private RoleRepository roleRepository;
-    private PasswordEncoder passwordEncoder;
-    private JwtTokenProvider jwtTokenProvider;
+
+    private final UserRepository ourUserRepo;
+    private final JwtTokenProvider jwtUtils;
+    private final PasswordEncoder passwordEncoder;
+    private final AuthenticationManager authenticationManager;
+
     @Override
-    public String login(LoginDto loginDto) {
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        loginDto.getUsernameOrEmail(),
-                        loginDto.getPassword()
-                )
-        );
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-        String token = this.jwtTokenProvider.generateToken(authentication);
-        return token;
+    public RegisterResponseDto register(RegisterDto registrationRequest) {
+        RegisterResponseDto resp = new RegisterResponseDto();
+        try {
+            User ourUsers = new User();
+            ourUsers.setEmail(registrationRequest.getEmail());
+            ourUsers.setPassword(passwordEncoder.encode(registrationRequest.getPassword()));
+            ourUsers.setRole(registrationRequest.getRole());
+            User ourUserResult = ourUserRepo.save(ourUsers);
+            if (ourUserResult != null && ourUserResult.getId()>0) {
+                resp.setUser(ourUserResult);
+                resp.setMessage("User Saved Successfully");
+                resp.setStatusCode(200);
+            }
+        }
+        catch (Exception e){
+            resp.setStatusCode(500);
+            resp.setMessage(e.getMessage());
+        }
+        return resp;
     }
 
     @Override
-    public String register(RegisterDto registerDto) {
-        if(this.userRepository.existsByUsername(registerDto.getUsername())){
-            throw new BlogAPIException(HttpStatus.BAD_REQUEST,"Username already exists");
+    public LoginResponseDto login(LoginDto loginRequest) {
+        LoginResponseDto response = new LoginResponseDto();
+
+        try {
+            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginRequest.getEmail(),loginRequest.getPassword()));
+            User user = ourUserRepo.findByEmail(loginRequest.getEmail()).orElseThrow(
+                    () -> new UsernameNotFoundException("User not found with email "+loginRequest.getEmail())
+            );
+            String jwt = jwtUtils.generateToken(user);
+            String refreshToken = jwtUtils.generateRefreshToken(new HashMap<>(), user);
+            response.setStatusCode(200);
+            response.setToken(jwt);
+            response.setRefreshToken(refreshToken);
+            response.setExpirationTime("24Hr");
+            response.setMessage("Successfully Signed In");
         }
-        if(this.userRepository.existsByEmail(registerDto.getEmail())){
-            throw new BlogAPIException(HttpStatus.BAD_REQUEST,"Email already exists");
+        catch (Exception e){
+            response.setStatusCode(500);
+            response.setMessage(e.getMessage());
         }
-        Set<Role> roles = new HashSet<>();
-        Role userRole = this.roleRepository.findByName("ROLE_USER").get();
-        roles.add(userRole);
-        User newUser = new User();
-        newUser.setName(registerDto.getName());
-        newUser.setUsername(registerDto.getUsername());
-        newUser.setEmail(registerDto.getEmail());
-        newUser.setPassword(passwordEncoder.encode(registerDto.getPassword()));
-        newUser.setRoles(roles);
-        this.userRepository.save(newUser);
-        return "User registered successfully";
+        return response;
     }
 }
