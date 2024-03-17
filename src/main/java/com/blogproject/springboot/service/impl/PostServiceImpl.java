@@ -7,7 +7,6 @@ import com.blogproject.springboot.exception.ResourceNotFoundException;
 import com.blogproject.springboot.mapper.PostsMapper;
 import com.blogproject.springboot.repository.PostsRepository;
 import com.blogproject.springboot.service.PostService;
-import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.PageRequest;
@@ -18,10 +17,13 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-@AllArgsConstructor
 public class PostServiceImpl implements PostService {
 
-    private PostsRepository postsRepository;
+    private final PostsRepository postsRepository;
+
+    public PostServiceImpl(PostsRepository postsRepository) {
+        this.postsRepository = postsRepository;
+    }
 
     @Override
     public String createPost(PostDto postDto) {
@@ -35,6 +37,7 @@ public class PostServiceImpl implements PostService {
 
     @Override
     public PostPaginationDto getPosts(int pageNo, int pageSize,String sortBy,String sortOrder) {
+
         Sort sort = sortOrder.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
         Pageable pageable= (Pageable) PageRequest.of(pageNo,pageSize, sort);
         Page<Post> posts = this.postsRepository.findAll(pageable);
@@ -80,5 +83,9 @@ public class PostServiceImpl implements PostService {
         if(post != null){
             this.postsRepository.delete(post);
         }
+    }
+
+    private boolean isEmptyInputString(String inputString) {
+        return inputString == null || inputString.isEmpty() || inputString.equals("null") || inputString.length() < 1;
     }
 }

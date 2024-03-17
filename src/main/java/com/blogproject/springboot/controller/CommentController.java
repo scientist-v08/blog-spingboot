@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/comment")
+@RequestMapping("/comment/adminuser")
 @AllArgsConstructor
 public class CommentController {
     private CommentService commentService;

@@ -34,7 +34,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(request -> request.requestMatchers("/api/auth/**", "/public/**").permitAll()
                         .requestMatchers("/posts/admin/**").hasAnyAuthority("ROLE_ADMIN")
                         .requestMatchers("/posts/user/**").hasAnyAuthority("ROLE_USER")
-                        .requestMatchers("/adminuser/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
+                        .requestMatchers("/comment/adminuser/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(manager -> manager.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

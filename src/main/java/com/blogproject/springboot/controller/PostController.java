@@ -12,14 +12,16 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/posts")
 @AllArgsConstructor
-@CrossOrigin("*")
 public class PostController {
+
     private PostService postService;
+
     @PostMapping("/admin")
     public ResponseEntity<String> createPost(@RequestBody PostDto postDto){
         String response= this.postService.createPost(postDto);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
+
     @GetMapping(value = {"/admin", "/user"})
     public ResponseEntity<PostPaginationDto> getAllPosts(
             @RequestParam(value = "pageNo",defaultValue = AppConstants.DEFAULT_PAGE_NUMBER, required = false) int pageNo,
