@@ -25,7 +25,10 @@ public class PostServiceImpl implements PostService {
 
     @Override
     public String createPost(PostDto postDto) {
-        Post post = PostsMapper.mapToPost(postDto);
+        Post post = new Post();
+        post.setTitle(postDto.getTitle());
+        post.setDescription(postDto.getDescription());
+        post.setContent(postDto.getContent());
         this.postsRepository.save(post);
         return "Data has been successfully created";
     }
@@ -57,19 +60,25 @@ public class PostServiceImpl implements PostService {
 
     @Override
     public String updatePost(PostDto postDto) {
-        Post updatedPost = PostsMapper.mapToPost(postDto);
-        this.postsRepository.save(updatedPost);
+        Post post = new Post();
+        post.setId(postDto.getId());
+        post.setTitle(postDto.getTitle());
+        post.setDescription(postDto.getDescription());
+        post.setContent(postDto.getContent());
+        this.postsRepository.save(post);
         return "Data has been updated";
     }
 
     @Override
     public void deletePostById(long id) {
         Post post = this.postsRepository.findById(id)
-                                        .orElseThrow(() -> new ResourceNotFoundException(
-                                                "Post",
-                                                "id",
-                                                String.valueOf(id))
-                                        );
-        this.postsRepository.delete(post);
+            .orElseThrow(() -> new ResourceNotFoundException(
+                    "Post",
+                    "id",
+                    String.valueOf(id))
+            );
+        if(post != null){
+            this.postsRepository.delete(post);
+        }
     }
 }
