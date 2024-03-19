@@ -1,16 +1,15 @@
 package com.blogproject.springboot.dto;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import lombok.Data;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-@Data
-@JsonIgnoreProperties(ignoreUnknown = true)
-@JsonInclude(JsonInclude.Include.NON_NULL)
+@Setter
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
 public class LoginResponseDto {
-    private Integer statusCode;
-    private String message;
-    private String token;
-    private String refreshToken;
-    private String expirationTime;
+    private String accessToken;
+    private String tokenType = "Bearer";
 }

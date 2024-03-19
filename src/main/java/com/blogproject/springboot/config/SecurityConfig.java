@@ -1,6 +1,7 @@
 package com.blogproject.springboot.config;
 
 import com.blogproject.springboot.security.CustomUserDetailsService;
+import com.blogproject.springboot.security.JwtAuthenticationEntryPoint;
 import com.blogproject.springboot.security.JwtAuthenticationFilter;
 import lombok.AllArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -14,6 +15,7 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -23,32 +25,36 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 @AllArgsConstructor
 public class SecurityConfig {
-    private final CustomUserDetailsService ourUserDetailsService;
-    private final JwtAuthenticationFilter jwtAuthFIlter;
+    private final UserDetailsService userDetailsService;
+
+    private final JwtAuthenticationEntryPoint authenticationEntryPoint;
+
+    private final JwtAuthenticationFilter authenticationFilter;
 
     @Bean
-    SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
-        httpSecurity
-                .csrf(AbstractHttpConfigurer::disable)
-                .cors(Customizer.withDefaults())
-                .authorizeHttpRequests(request -> request.requestMatchers("/api/auth/**", "/public/**").permitAll()
-                        .requestMatchers("/posts/admin/**").hasAnyAuthority("ROLE_ADMIN")
-                        .requestMatchers("/posts/user/**").hasAnyAuthority("ROLE_USER")
-                        .requestMatchers("/comment/adminuser/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
-                        .anyRequest().authenticated()
-                )
-                .sessionManagement(manager -> manager.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authenticationProvider(authenticationProvider())
-                .addFilterBefore(
-                        jwtAuthFIlter, UsernamePasswordAuthenticationFilter.class
+    SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+
+        http.csrf(csrf -> csrf.disable())
+                .authorizeHttpRequests((authorize) ->
+                        //authorize.anyRequest().authenticated()
+                        authorize.requestMatchers("/api/auth/**").permitAll()
+                                .anyRequest().authenticated()
+
+                ).exceptionHandling( exception -> exception
+                        .authenticationEntryPoint(authenticationEntryPoint)
+                ).sessionManagement( session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 );
-        return httpSecurity.build();
+
+        http.addFilterBefore(authenticationFilter, UsernamePasswordAuthenticationFilter.class);
+
+        return http.build();
     }
 
     @Bean
     AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider daoAuthenticationProvider = new DaoAuthenticationProvider();
-        daoAuthenticationProvider.setUserDetailsService(ourUserDetailsService);
+        daoAuthenticationProvider.setUserDetailsService(userDetailsService);
         daoAuthenticationProvider.setPasswordEncoder(passwordEncoder());
         return daoAuthenticationProvider;
     }

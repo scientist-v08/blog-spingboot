@@ -7,22 +7,25 @@ import com.blogproject.springboot.util.AppConstants;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/posts")
+@RequestMapping("/api/posts")
 @AllArgsConstructor
 public class PostController {
 
-    private PostService postService;
+    private final PostService postService;
 
-    @PostMapping("/admin")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PostMapping
     public ResponseEntity<String> createPost(@RequestBody PostDto postDto){
         String response= this.postService.createPost(postDto);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
-    @GetMapping(value = {"/admin", "/user"})
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_USER')")
+    @GetMapping
     public ResponseEntity<PostPaginationDto> getAllPosts(
             @RequestParam(value = "pageNo",defaultValue = AppConstants.DEFAULT_PAGE_NUMBER, required = false) int pageNo,
             @RequestParam(value = "pageSize",defaultValue = AppConstants.DEFAULT_PAGE_SIZE,required = false)int pageSize,
@@ -34,18 +37,21 @@ public class PostController {
         return new ResponseEntity<>(posts, HttpStatus.OK);
     }
 
-    @GetMapping(value = {"/admin/{id}", "/user/{id}"})
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_USER')")
+    @GetMapping("/{id}")
     public ResponseEntity<PostDto> getPostById(@PathVariable(name = "id") long id){
         return ResponseEntity.ok(this.postService.getPostById(id));
     }
 
-    @PutMapping("/admin/{id}")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PutMapping("/{id}")
     public ResponseEntity<String> updatePost(@RequestBody PostDto postDto){
         String successMessage = postService.updatePost(postDto);
         return new ResponseEntity<>(successMessage, HttpStatus.OK);
     }
 
-    @DeleteMapping("/admin/{id}")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @DeleteMapping("/{id}")
     public ResponseEntity<String> deletePost(@PathVariable(name = "id") long id){
         this.postService.deletePostById(id);
         return new ResponseEntity<>("Post entity deleted successfully.", HttpStatus.OK);
